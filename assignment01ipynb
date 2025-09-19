@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix # TODO: learn how to use these two functions
 import matplotlib.pyplot as plt
+import sys
 
 # 1. Load data
 def load_data(path):
@@ -18,6 +19,8 @@ def load_data(path):
 
 def feature_processing(df):
     # TODO: Feature engineering.
+    # print(df.info()) 
+    # sys.exit()
     return df
 
 # 2. Dataset class
@@ -63,8 +66,9 @@ def main():
     df = feature_processing(df)
 
     # Split features and labels
-    X = df.drop("price_range", axis=1)
-    y = df["price_range"]
+    X = df.drop("price_range", axis=1)  # the features
+    y = df["price_range"] # what we are predicting (labels)
+
 
     # Preprocessing (e.g., scaling) — add later
     
@@ -72,9 +76,18 @@ def main():
     # https://scikit-learn.org/stable/data_transforms.html
     X_scaled = scaler.fit_transform(X)
     X_scaled = pd.DataFrame(X_scaled, columns=X.columns)
-
+   
     # TODO: Train/val split
     # X_train, X_test, y_train, y_test 
+    # X_test = test_df.drop("price_range", axis=1) # test features 
+    # y_test = test_df["price_range"] # 
+    df_train, df_val = train_test_split(df, test_size=0.20, random_state=100)
+    X_train = df_train.drop("price_range", axis=1) 
+    y_train = df_train["price_range"] 
+    
+    X_val = df_val.drop("price_range", axis=1) 
+    y_val = df_val["price_range"] 
+    
     # https://scikit-learn.org/0.19/modules/generated/sklearn.model_selection.train_test_split.html
     
 
