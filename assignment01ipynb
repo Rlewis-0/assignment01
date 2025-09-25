@@ -27,8 +27,9 @@ def load_data(path):
 def feature_processing(df):
     
     # print(df.info())
+    # sys.exit()
    
-    # df = df.drop(columns=(['three_g']))
+    df = df.drop(columns=(['three_g']))
    
     # print(df.info())
     # sys.exit()
@@ -68,27 +69,7 @@ class MLPClassifier(nn.Module):
   # TODO: Here I built a very simple MLP, you need to build your own model.
   # i can add drop out
 #    def __init__(self, input_dim, hidden_dims=[16, 2], output_dim=4):
-#        super(MLPClassifier, self).__init__()
-#        self.model = nn.Sequential(
-#            nn.Linear(input_dim, hidden_dims[0]),
-#            nn.ReLU(),
-#         #    nn.Dropout(0.5),
-#            nn.Linear(hidden_dims[0], hidden_dims[1]),
-#            nn.ReLU(),
-#         #    nn.Dropout(0.3),
-#         #    nn.Linear(hidden_dims[1], hidden_dims[2]),
-#         #    nn.ReLU(),
-#         #    nn.Dropout(0.2),
-#         #    nn.Linear(hidden_dims[2], hidden_dims[3]),
-#         #    nn.ReLU(),
-#         #    nn.Dropout(0.3),
-#         #    nn.Linear(hidden_dims[3], hidden_dims[4]),
-#         #    nn.ReLU(),
-#         #    nn.Dropout(0.1),
-#            nn.Linear(hidden_dims[1], output_dim) # Do not apply softmax here!!!
-#        )
-       
-    def __init__(self, input_dim, hidden_dims=[256, 128, 64, 32, 16], output_dim=4):
+    def __init__(self, input_dim, hidden_dims=[742, 128, 128, 32, 16], output_dim=4):
         super(MLPClassifier, self).__init__()
         self.model = nn.Sequential(
             nn.Linear(input_dim, hidden_dims[0]),
@@ -170,7 +151,7 @@ def main():
 
    # TODO: Train/val split
    # X_train, X_test, y_train, y_test
-   X_train, X_val, y_train, y_val = train_test_split(X_scaled, y, test_size=0.33, random_state=42)
+   X_train, X_val, y_train, y_val = train_test_split(X_scaled, y, test_size=0.2, random_state=462)
    # https://scikit-learn.org/0.19/modules/generated/sklearn.model_selection.train_test_split.html
   
 
