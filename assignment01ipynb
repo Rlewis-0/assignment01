@@ -9,13 +9,23 @@ import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.metrics import classification_report, confusion_matrix # TODO: learn how to use these two functions
 from sklearn.metrics import ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
+import seaborn as sns
 
+#debugging
 
+# Load the state dictionary
+state_dict = torch.load('best_model.pt')
 
+# Print the keys and shapes of the saved model
+# print("Keys and shapes in the saved model:")
+# for key, value in state_dict.items():
+#     print(f"{key}: {value.shape}")
+#     sys.exit()
+#debugging
 
 # 1. Load data
 def load_data(path):
@@ -27,12 +37,21 @@ def load_data(path):
 def feature_processing(df):
     
     # print(df.info())
+    
+    # correlation_matrix = df.corr()
+    # plt.figure(figsize=(10, 8)) # Adjust figure size for better readability
+    # sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=2)
+    # plt.title('Correlation Heatmap of Dataset')
+    # plt.show()
+    # oneHotEncoder = OneHotEncoder(handle_unknown='ignore', sparse_output= False).set_output(transform='pandas') #made model worse
+    # oneHotEncoderTransform = oneHotEncoder.fit_transform(df[['blue' , 'dual_sim' , 'four_g' , 'three_g' , 'touch_screen' , 'wifi']])
+    # df = pd.concat([df, oneHotEncoderTransform] , axis= 1).drop(columns=['blue' , 'dual_sim' , 'four_g' , 'three_g' , 'touch_screen' , 'wifi'])
+    df = df.drop(columns=(['fc']))
+    # print(df.head())
     # sys.exit()
-   
-    df = df.drop(columns=(['three_g']))
    
     # print(df.info())
-    # sys.exit()
+    #
     
    #TODO: Feature engineering.
    # print("Number of features:", df.shape[1])
@@ -42,6 +61,7 @@ def feature_processing(df):
    # print("\nTotal NaNs in dataset:", df.isna().sum().sum())
     
    # data set has 20 features and there are no missing values
+   
   
     return df
 
@@ -62,6 +82,37 @@ class MobilePriceDataset(Dataset):
 
    def __getitem__(self, idx):
        return self.X[idx], self.y[idx]
+
+
+# # 3. MLP model
+# class MLPClassifier(nn.Module):
+#   # TODO: Here I built a very simple MLP, you need to build your own model.
+#   # i can add drop out
+# #    def __init__(self, input_dim, hidden_dims=[16, 2], output_dim=4):
+#     def __init__(self, input_dim, hidden_dims=[742, 128, 128, 32, 16], output_dim=4):
+#         super(MLPClassifier, self).__init__()
+#         self.model = nn.Sequential(
+#             nn.Linear(input_dim, hidden_dims[0]),
+#             nn.ReLU(),
+#             nn.Dropout(0.5),
+#             nn.Linear(hidden_dims[0], hidden_dims[1]),
+#             nn.ReLU(),
+#             nn.Dropout(0.3),
+#             nn.Linear(hidden_dims[1], hidden_dims[2]),
+#             nn.ReLU(),
+#             nn.Dropout(0.2),
+#             nn.Linear(hidden_dims[2], hidden_dims[3]),
+#             nn.ReLU(),
+#             nn.Dropout(0.3),
+#             nn.Linear(hidden_dims[3], hidden_dims[4]),
+#             nn.ReLU(),
+#             nn.Dropout(0.1),
+#             nn.Linear(hidden_dims[4], output_dim) # Do not apply softmax here!!!
+#         )
+
+
+#     def forward(self, x):
+#        return self.model(x)
 
 
 # 3. MLP model
@@ -90,9 +141,8 @@ class MLPClassifier(nn.Module):
             nn.Linear(hidden_dims[4], output_dim) # Do not apply softmax here!!!
         )
 
-
     def forward(self, x):
-       return self.model(x)
+        return self.model(x)
 
 def predict(model, X_test_loader, device):
        """
@@ -123,7 +173,7 @@ def predict(model, X_test_loader, device):
      
        disp = ConfusionMatrixDisplay(cm)
        disp.plot()
-       plt.show() 
+       plt.show() #ya
        print("Classification Report \n", classification_report(target, predicted))
    
        return accuracy
@@ -182,7 +232,7 @@ def main():
    # Here is a basic training loop
    # Training setup
    criterion = nn.CrossEntropyLoss()
-   optimizer = torch.optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-5) #  , weight_decay=1e-4You can play with different optimizer, added weight decay
+   optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5) #  , weight_decay=1e-4You can play with different optimizer, added weight decay
    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=10, factor=0.5)
   
    # Training parameters
@@ -191,14 +241,14 @@ def main():
 
    # The following three lines are related to early stop
    #TODO: Apply early stop for your model
-  
-   early_stop_patience = 15
-   with open("best_val_loss.txt") as f:
-       if f.read() == None :
-           best_val_loss = float('inf')
-       else : 
-        best_val_loss =  f.read()
-#    best_val_loss = float('inf')
+   
+   early_stop_patience = 40
+   with open("best_val_loss.txt") as f:  #https://www.w3schools.com/python/python_file_write.asp 
+       num = f.read().strip()
+       if num == "" :
+           best_val_loss = float("inf")
+       else :
+           best_val_loss = float(num)
    patience_counter = 0
 
 
@@ -290,13 +340,18 @@ def main():
 
 
        # TODO: Early stopping
-       if val_loss < best_val_loss:
+       if val_loss <= best_val_loss:
            best_val_loss = val_loss
+
+           print("updating best_val_loss")
+           with open("best_val_loss.txt", "w") as f:
+                f.write(f"{best_val_loss}\n")
+                
            patience_counter = 0
+           print("updating best model")
            torch.save(model.state_dict(), 'best_model.pt')
        else:
            patience_counter += 1
-
 
        if patience_counter >= early_stop_patience:
            print("Early stopping!")
@@ -312,15 +367,19 @@ def main():
       
   
    plot_learning_curves(train_losses, val_losses, train_accuracies, val_accuracies)
-  
    
-   
+   print("loading and predicting with current model")
    accuracy = predict(model, train_loader, device)
    print("Current accuracy is :" , accuracy)
-#    cm = confusion_matrix(y_val, predicted)
-#    disp = ConfusionMatrixDisplay(cm)
-#    disp.plot()
-#    print("Classification Report \n", classification_report(y_test, y_pred))
+  
+  
+   print("loading and predicting with best model")
+   model.load_state_dict(torch.load('best_model.pt'), strict=False)
+  
+   accuracy = predict(model, train_loader, device)
+   print("Current accuracy is :" , accuracy)
+
+
    
   
        
@@ -367,7 +426,7 @@ def plot_learning_curves(train_losses, val_losses, train_accuracies, val_accurac
    ax2.grid(True, alpha=0.3)
   
    plt.tight_layout()
-   plt.show(block=True)
+   plt.show(block=True)     #ya
 
 
 
@@ -377,7 +436,7 @@ if __name__ == "__main__":
 
 
    # load the best model
-   model.load_state_dict(torch.load('best_model.pt'))
+#    model.load_state_dict(torch.load('best_model.pt'))
   
   
 
