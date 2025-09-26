@@ -193,7 +193,12 @@ def main():
    #TODO: Apply early stop for your model
   
    early_stop_patience = 15
-   best_val_loss = float('inf')
+   with open("best_val_loss.txt") as f:
+       if f.read() == None :
+           best_val_loss = float('inf')
+       else : 
+        best_val_loss =  f.read()
+#    best_val_loss = float('inf')
    patience_counter = 0
 
 
