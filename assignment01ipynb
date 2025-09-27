@@ -136,7 +136,7 @@ class MLPClassifier(nn.Module):
             nn.LeakyReLU(),
             nn.Dropout(0.3),
             nn.Linear(hidden_dims[3], hidden_dims[4]),
-            nn.LeakyReLU(0.6),
+            nn.LeakyReLU(0.06),
             nn.Dropout(0.1),
             nn.Linear(hidden_dims[4], output_dim) # Do not apply softmax here!!!
         )
