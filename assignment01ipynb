@@ -173,7 +173,7 @@ def predict(model, X_test_loader, device):
      
        disp = ConfusionMatrixDisplay(cm)
        disp.plot()
-    #    plt.show() #ya
+       plt.show() #ya
        print("Classification Report \n", classification_report(target, predicted))
    
        return accuracy
@@ -404,7 +404,7 @@ def plot_learning_curves(train_losses, val_losses, train_accuracies, val_accurac
    # ax3.set_title("Learning Curve")
    # ax3.legend(fontsize=12)
    # ax3.grid(True)
-   # plt.show()
+   plt.show()
 
 
    # Plot losses
